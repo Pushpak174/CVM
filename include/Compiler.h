@@ -20,11 +20,11 @@ class Compiler {
     }
 
     void patchJump(size_t pos) {
-        code[pos] = code.size();
+        code[pos] = (uint8_t)code.size();
     }
 
     void patchJumpTo(size_t pos, size_t target) {
-        code[pos] = target;
+        code[pos] = (uint8_t)target;
     }
 
     // Refactored to accept raw pointers
@@ -32,7 +32,7 @@ class Compiler {
         if (!e) return;
 
         if (auto* n = dynamic_cast<IntNode*>(e)) {
-            emit(OP_PUSH); emit(n->value);
+            emit(OP_PUSH); emit((uint8_t)n->value);
         }
         else if (auto* v = dynamic_cast<VarNode*>(e)) {
             emit(OP_LOAD); emit(vars[v->name]);
@@ -109,7 +109,7 @@ class Compiler {
                 stmt(st);
 
             emit(OP_JUMP);
-            emit(loopStart);
+            emit((uint8_t)loopStart);
 
             patchJump(jFalse);
 
@@ -135,7 +135,7 @@ class Compiler {
             
             size_t jFalse = emitJump(OP_JUMP_IF_FALSE);
             emit(OP_JUMP);
-            emit(loopStart);
+            emit((uint8_t)loopStart);
             
             patchJump(jFalse);
 
@@ -154,7 +154,7 @@ class Compiler {
 
             size_t loopStart = code.size();
             
-            size_t jFalse = -1;
+            size_t jFalse = (size_t)-1;
             if (f->cond) {
                 expr(f->cond);
                 jFalse = emitJump(OP_JUMP_IF_FALSE);
@@ -167,9 +167,9 @@ class Compiler {
             if (f->inc) stmt(f->inc);
 
             emit(OP_JUMP);
-            emit(loopStart);
+            emit((uint8_t)loopStart);
 
-            if (jFalse != -1) patchJump(jFalse);
+            if (jFalse != (size_t)-1) patchJump(jFalse);
 
             for (auto pos : breakStack.back()) patchJump(pos);
             for (auto pos : continueStack.back()) patchJumpTo(pos, incStart);
