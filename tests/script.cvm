@@ -1,0 +1,10 @@
+let x = 10;
+let y = 10;
+let z = 20;
+
+print x == y;
+print x == z;
+
+if (x == y) {
+    print 99;
+}
