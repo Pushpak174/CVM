@@ -1,0 +1,6 @@
+let a = 15;
+let b = 25;
+let sum = a + b;
+print sum;
+let product = a + b + 10;
+print product;
