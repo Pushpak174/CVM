@@ -9,7 +9,7 @@ public:
         size_t i = 0;
 
         while (i < source.length()) {
-            char c = source[i];
+            unsigned char c = static_cast<unsigned char>(source[i]);
 
             if (std::isspace(c)) { i++; continue; }
 
@@ -43,7 +43,7 @@ public:
             // Optimized Numbers (No concatenation)
             if (std::isdigit(c)) {
                 size_t start = i;
-                while (i < source.length() && std::isdigit(source[i])) i++;
+                while (i < source.length() && std::isdigit(static_cast<unsigned char>(source[i]))) i++;
                 tokens.push_back({TOK_INT, std::string_view(source.data() + start, i - start)});
                 continue;
             }
@@ -51,7 +51,7 @@ public:
             // Optimized Identifiers & Keywords (No concatenation)
             if (std::isalpha(c)) {
                 size_t start = i;
-                while (i < source.length() && std::isalnum(source[i])) i++;
+                while (i < source.length() && std::isalnum(static_cast<unsigned char>(source[i]))) i++;
                 std::string_view ident(source.data() + start, i - start);
 
                 if (ident == "let") tokens.push_back({TOK_LET, ident});
