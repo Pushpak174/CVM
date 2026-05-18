@@ -55,7 +55,7 @@ Make sure you have CMake ≥ 3.10 installed.
 mkdir build
 cd build
 cmake ..
-make
+cmake --build .
 ```
 
 This will generate the executable:
@@ -71,14 +71,11 @@ cvm
 ### 🔹 Run with a script file
 
 ```bash
-./cvm ../tests/script.cvm
+.\Debug\cvm ..\tests\calculator.cvm
+.\Debug\cvm ..\tests\truth_machine.cvm
 ```
 
-### 🔹 Run in REPL mode
 
-```bash
-./cvm
-```
 
 Example:
 
