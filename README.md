@@ -225,15 +225,5 @@ This project is designed to help you understand:
 
 ---
 
-## 🤝 Contribution
 
-Feel free to fork and extend:
-- Add new syntax
-- Improve VM performance
-- Expand compiler capabilities
 
----
-
-## 📜 License
-
-This project is open-source and free to use for educational purposes.
