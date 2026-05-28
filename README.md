@@ -1,85 +1,82 @@
-# CVM++ (Custom Virtual Machine in C++)
+# CVM++ — Custom Virtual Machine in C++
 
-CVM++ is a minimal end-to-end programming language pipeline built in C++. It demonstrates how a simple language is processed through all major stages:
+> A minimal, end-to-end programming language pipeline built in C++ — from raw source text to bytecode execution.
 
-**Source Code → Tokens → AST → Bytecode → Execution (VM)**
-
-This project is ideal for learning:
-- Compilers (Lexer, Parser, AST)
-- Bytecode generation
-- Virtual Machines
-- Language design basics
+[![Language](https://img.shields.io/badge/language-C%2B%2B17-blue.svg)](https://isocpp.org/)
+[![Build](https://img.shields.io/badge/build-CMake%203.10%2B-brightgreen.svg)](https://cmake.org/)
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
 
 ---
 
-## 🚀 Features
+## Overview
 
-- Simple custom language with:
-  - Variable declaration (`let`)
-  - Basic arithmetic operations ('+')
-  - Output statements ('print')
-- Full pipeline:
-  - Lexer → Parser → Compiler → Virtual Machine
-- REPL mode (interactive)
-- Script execution from file
+CVM++ is a ground-up implementation of a small programming language runtime, designed to demonstrate every stage of the compilation pipeline — from lexical analysis to virtual machine execution.
+
+```
+Source Code  →  Tokens  →  AST  →  Bytecode  →  VM Execution
+```
+
+This project was built as an exercise in understanding how real-world languages (Python, Java, Lua) work under the hood — no libraries, no shortcuts.
 
 ---
 
-## 📁 Project Structure
+## Features
+
+- **Custom language** with variable declarations, arithmetic, and print statements
+- **Full pipeline implementation:** Lexer → Parser → AST → Compiler → VM
+- **Stack-based bytecode VM** with a flat variable store
+- **REPL mode** for interactive evaluation
+- **File execution** mode for running `.cvm` scripts
+
+---
+
+## Project Structure
 
 ```
 CVM_PlusPlus/
 ├── CMakeLists.txt
 ├── src/
-│   └── main.cpp
+│   └── main.cpp           # Entry point: REPL and file runner
 ├── include/
-│   ├── Common.h
-│   ├── Lexer.h
-│   ├── Parser.h
-│   ├── Compiler.h
-│   └── VM.h
+│   ├── Common.h           # Shared types and opcode definitions
+│   ├── Lexer.h            # Tokenizer
+│   ├── Parser.h           # AST construction
+│   ├── Compiler.h         # AST → Bytecode code generation
+│   └── VM.h               # Bytecode interpreter
 └── tests/
-    └── script.cvm
+    ├── script.cvm
+    ├── calculator.cvm
+    └── truth_machine.cvm
 ```
 
 ---
 
-## ⚙️ Build Instructions
+## Build Instructions
 
-### 1. Install CMake
-Make sure you have CMake ≥ 3.10 installed.
-
-### 2. Build the project
+**Prerequisites:** CMake ≥ 3.10, a C++17-compatible compiler (GCC, Clang, or MSVC)
 
 ```bash
-mkdir build
-cd build
+mkdir build && cd build
 cmake ..
 cmake --build .
 ```
 
-This will generate the executable:
-
-```
-cvm
-```
+The build produces a single executable: `cvm`
 
 ---
 
-## ▶️ How to Run
+## Usage
 
-### 🔹 Run with a script file
+### Run a script file
 
 ```bash
-.\Debug\cvm ..\tests\calculator.cvm
-.\Debug\cvm ..\tests\truth_machine.cvm
+./cvm ../tests/script.cvm
 ```
 
+### Interactive REPL
 
-
-Example:
-
-```
+```bash
+./cvm
 cvm> let x = 5;
 cvm> print x + 10;
 15
@@ -87,20 +84,40 @@ cvm> print x + 10;
 
 ---
 
-## 🧪 Example Script
+## Language Reference
 
-File: `tests/script.cvm`
+CVM++ supports a minimal, C-like syntax.
 
-```c
+### Variable Declaration
+
+```
 let x = 10;
-let y = 20;
-print x + y;
-let z = x + y + 5;
-print z;
+```
+
+### Arithmetic Expressions
+
+```
+x + y + 5
 ```
 
 ### Output
 
+```
+print x + y;
+```
+
+### Example Program
+
+```c
+let x = 10;
+let y = 20;
+print x + y;        // 30
+
+let z = x + y + 5;
+print z;            // 35
+```
+
+**Output:**
 ```
 --- VM Execution Output ---
 30
@@ -109,118 +126,99 @@ print z;
 
 ---
 
-## 🧠 How It Works (Pipeline)
+## Architecture Deep Dive
 
 ### 1. Lexer (`Lexer.h`)
-- Converts raw text into tokens
 
-Example:
-```
-let x = 10;
-```
+Converts raw source text into a flat sequence of tokens. Handles keywords, identifiers, integer literals, operators, and punctuation.
 
-Becomes:
 ```
-TOK_LET TOK_IDENT TOK_ASSIGN TOK_INT TOK_SEMI
+Input:   let x = 10;
+Tokens:  TOK_LET  TOK_IDENT("x")  TOK_ASSIGN  TOK_INT(10)  TOK_SEMI
 ```
-
----
 
 ### 2. Parser (`Parser.h`)
-- Builds an Abstract Syntax Tree (AST)
-- Handles expressions like:
+
+Consumes the token stream and produces an Abstract Syntax Tree (AST). Expressions are parsed using a recursive descent strategy.
 
 ```
-x + y + 5
+print x + y + 5
+         ↓
+    PrintStatement
+         └── BinaryExpr(+)
+               ├── BinaryExpr(+)
+               │     ├── Identifier("x")
+               │     └── Identifier("y")
+               └── IntLiteral(5)
 ```
-
----
 
 ### 3. Compiler (`Compiler.h`)
-- Converts AST → Bytecode
-- Uses a stack-based instruction model
 
-Example bytecode:
-```
-PUSH 10
-STORE x
-LOAD x
-PUSH 20
-ADD
-PRINT
-```
+Performs a depth-first traversal of the AST and emits stack-based bytecode instructions.
 
----
+```
+AST Input: let z = x + y + 5;
+
+Bytecode Output:
+  LOAD  x
+  LOAD  y
+  ADD
+  PUSH  5
+  ADD
+  STORE z
+```
 
 ### 4. Virtual Machine (`VM.h`)
-- Executes bytecode instructions
-- Uses:
-  - Stack for computation
-  - Array for variables
+
+Executes the bytecode instruction stream. Uses:
+- An **operand stack** for expression evaluation
+- A **variable array** (max 256 slots) for named bindings
 
 ---
 
-## 🧾 Supported Language Syntax
+## Instruction Set
 
-### Variables
-```c
-let x = 10;
-```
-
-### Arithmetic
-```c
-x + y + 5
-```
-
-### Print
-```c
-print x + y;
-```
+| Opcode     | Operand  | Description                              |
+|------------|----------|------------------------------------------|
+| `OP_PUSH`  | `value`  | Push an integer constant onto the stack  |
+| `OP_ADD`   | —        | Pop two values, push their sum           |
+| `OP_STORE` | `index`  | Pop top of stack, store in variable slot |
+| `OP_LOAD`  | `index`  | Push value of variable slot onto stack   |
+| `OP_PRINT` | —        | Pop and print top of stack               |
+| `OP_HALT`  | —        | Halt execution                           |
 
 ---
 
-## 🔧 Opcodes
+## Current Limitations
 
-| Opcode    | Description                     |
-|----------|--------------------------------|
-| OP_PUSH  | Push value to stack            |
-| OP_ADD   | Add top two values             |
-| OP_STORE | Store value in variable        |
-| OP_LOAD  | Load variable to stack         |
-| OP_PRINT | Print top value                |
-| OP_HALT  | Stop execution                 |
+This is v1 — intentionally constrained to keep the implementation readable and focused.
 
----
-
-## 📌 Limitations (v1)
-
-- Only integer support
-- Only `+` operator
-- No error handling
-- No parentheses
-- Max 256 variables
+- Integer types only (no floats or strings)
+- Addition operator only
+- No expression grouping (parentheses)
+- No control flow (conditionals, loops)
+- No functions or scope
+- No runtime error messages
 
 ---
 
-## 🚀 Future Improvements
+## Roadmap
 
-- Add subtraction, multiplication, division
-- Add parentheses and precedence
-- Better error handling
-- Support for strings
-- Control flow (if, loops)
-- Functions
-
----
-
-## 💡 Learning Goal
-
-This project is designed to help you understand:
-- How programming languages work internally
-- How compilers and interpreters are built
-- How bytecode VMs execute instructions
+- [ ] Subtraction, multiplication, division
+- [ ] Operator precedence and parenthesised expressions
+- [ ] Meaningful compile-time and runtime error messages
+- [ ] String type support
+- [ ] `if` / `else` conditionals
+- [ ] `while` loops
+- [ ] User-defined functions with local scope
 
 ---
 
+## Why I Built This
 
+Most developers use compilers and interpreters every day without understanding what happens between writing code and running it. CVM++ was an attempt to close that gap — every stage of the pipeline, written from scratch, with no external dependencies.
+
+The goal wasn't to build something production-ready. It was to understand, at a mechanical level, how a language actually works.
+
+---
 
